@@ -74,6 +74,14 @@ class FXK
      * @var Filter filter
      */
     private $filter;
+    /**
+     * @var mixed
+     */
+    private $token;
+    /**
+     * @var mixed
+     */
+    private $encodingAesKey;
 
     /**
      * Guanyi constructor.
@@ -86,6 +94,8 @@ class FXK
         $this->permanentCode = $config ['permanentCode'];
         $this->adminUser = $config ['adminUser'];
         $this->url = $config ['url'];
+        $this->token = $config ['token'];
+        $this->encodingAesKey = $config ['encodingAesKey'];
 
         $this->client = new Client([
             'timeout' => $config ['timeout'],
@@ -516,6 +526,26 @@ class FXK
         ;
 
         return $this->getModelByAdminUser ('crm/custom/data/query', $currentOpenUserId);
+
+    }
+
+    /**
+     * @param $sign
+     * @param $timeStamp
+     * @param $nonce
+     * @param $content
+     * @return array
+     * 解密
+     */
+    public function MsgCrypt($sign, $timeStamp, $nonce, $content){
+        $mc = new MsgCrypt($this->token, $this->encodingAesKey);
+        $msg = $mc->decryptMsg($sign, $timeStamp, $nonce, $content);
+        if ($msg == -1) {
+           $data=['code'=>-1,'msg'=>'解密失败'];
+        } else {
+            $data=['code'=>1,'msg'=>$msg];
+        }
+        return $data;
 
     }
 
