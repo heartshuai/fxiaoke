@@ -1,0 +1,34 @@
+{
+    "name": "yxs/fxiaoke",
+    "description": "fxiaoke php library",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "yxs",
+            "email": "yanxingshuai@sina.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=7.0",
+        "guzzlehttp/guzzle": "^7.0",
+        "laravel/framework": "^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Goodcatch\\FXK\\": "src/"
+
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Goodcatch\\FXK\\Laravel\\ServiceProvider"
+            ],
+            "aliases": {
+                "Guanyi": "Goodcatch\\FXK\\Facades\\FXK"
+            }
+        }
+    }
+}
