@@ -2,6 +2,8 @@
 
 namespace Goodcatch\FXK;
 
+use Exception;
+
 class MsgCrypt
 {
     private $token;
@@ -73,7 +75,7 @@ class MsgCrypt
      * @param $nonce string 随机串，对应POST请求的数据中的nonce
      * @param $content string 密文，对应POST请求的数据中的content
      *
-     * @return string， 失败-1，成功则返回解密后的明文
+     * @return string，|int|string
      */
     public function decryptMsg($msgSignature, $timestamp = null, $nonce, $content)
     {
@@ -138,8 +140,8 @@ class PKCS7Encoder
 
     /**
      * 对解密后的明文进行补位删除
-     * @param decrypted 解密后的明文
-     * @return 删除填充补位后的明文
+     * @param
+     * @return false|string
      */
     function decode($text)
     {
