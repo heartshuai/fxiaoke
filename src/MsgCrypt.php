@@ -75,7 +75,7 @@ class MsgCrypt
      * @param $nonce string 随机串，对应POST请求的数据中的nonce
      * @param $content string 密文，对应POST请求的数据中的content
      *
-     * @return string，|int|string
+     * @return string， 失败-1，成功则返回解密后的明文
      */
     public function decryptMsg($msgSignature, $timestamp = null, $nonce, $content)
     {
@@ -110,12 +110,13 @@ class MsgCrypt
 
         $iv = substr($aesKeyBytes, 0, 16);
         $decrypted = openssl_decrypt($ciphertextBytes, 'AES-256-CBC', $aesKeyBytes, OPENSSL_RAW_DATA|OPENSSL_ZERO_PADDING, $iv);
+        
         try {
             //去除补位字符
             $pkc_encoder = new PKCS7Encoder;
             $result = $pkc_encoder->decode($decrypted);
-
-            //去除16位随机字符串,网络字节序
+            return $result;
+//            //去除16位随机字符串,网络字节序
             if (strlen($result) < 16){
                 return "";
             }
@@ -131,26 +132,6 @@ class MsgCrypt
 
     }
 
-}
-
-
-class PKCS7Encoder
-{
-    public static $block_size = 32;
-
-    /**
-     * 对解密后的明文进行补位删除
-     * @param
-     * @return false|string
-     */
-    function decode($text)
-    {
-        $pad = ord(substr($text, -1));
-        if ($pad < 1 || $pad > 32) {
-            $pad = 0;
-        }
-        return substr($text, 0, (strlen($text) - $pad));
-    }
 }
 
 

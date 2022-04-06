@@ -44,26 +44,30 @@ trait HasAttributes
      * @return \Goodcatch\FXK\Model
      *
      */
-    public function fill(array $attributes)
+    public function fill(array $attributes,$type='')
     {
         if (isset($attributes) && count ($attributes) > 0)
         {
-            foreach ($attributes as $key => $value) {
 
-                if (!is_null ($value) && isset($value) && is_array($value) && count($value) > 0)
-                {
-                    $value = \collect($value)->reduce(function ($arr, $item) {
-                        if (isset($item) && is_array($item))
-                        {
-                            $arr->push(new Model($item));
-                        } else {
-                            $arr->push($item);
-                        }
-                        return $arr;
-                    }, \collect([]));
-                }
-                $this->setAttribute($key, $value);
+            if($type=='crm'){
+
+                $attributes=$attributes['data']['dataList'];
             }
+
+                foreach ($attributes as $key => $value) {
+
+                    if (!is_null ($value) && isset($value) && is_array($value) && count($value) > 0)
+                    {
+
+                        $value = \collect($value);
+                    }
+
+                    $this->setAttribute($key, $value);
+                }
+
+
+
+
         }
         return $this;
     }

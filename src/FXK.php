@@ -74,6 +74,7 @@ class FXK
      * @var Filter filter
      */
     private $filter;
+
     /**
      * @var mixed
      */
@@ -83,6 +84,7 @@ class FXK
      */
     private $encodingAesKey;
 
+    private $type;
     /**
      * Guanyi constructor.
      * @param array $config guanyi config
@@ -96,6 +98,7 @@ class FXK
         $this->url = $config ['url'];
         $this->token = $config ['token'];
         $this->encodingAesKey = $config ['encodingAesKey'];
+//        $this->corpAccessToken=Cache::get(self::CACHE_KEY_CORPACCESSTOKEN_EXPIRESIN);
 
         $this->client = new Client([
             'timeout' => $config ['timeout'],
@@ -145,6 +148,7 @@ class FXK
         $result = null;
         try {
             $response = $this->client->send($request);
+
             if (!is_null($response) && !empty ($response) && $response->getStatusCode() === 200) {
                 $body = $response->getBody();
 
@@ -169,7 +173,6 @@ class FXK
                 }
             }
         }
-
         return $result;
     }
 
@@ -181,7 +184,8 @@ class FXK
      */
     private function handleResp(array $result): Model
     {
-        return new Model($result);
+
+        return new Model($result,$this->type);
     }
 
     private function transform (Model $model, $collection):Model
@@ -284,9 +288,10 @@ class FXK
      */
     private function freshCorpAccessToken ()
     {
+        
         if (is_null ($this->corpAccessToken))
         {
-
+            $this->type='auth';
             $model = $this->exec (
                 $this->request ('corpAccessToken/get/V2', [
                     'appId' => $this->appId,
@@ -302,6 +307,7 @@ class FXK
             }
         } else if (! Cache::has (self::CACHE_KEY_CORPACCESSTOKEN_EXPIRESIN)) {
             $this->corpAccessToken = null;
+            $this->type='auth';
             $this->getCorpAccessToken ();
         }
     }
@@ -313,7 +319,6 @@ class FXK
     private function getCorpAccessToken (): array
     {
         $this->freshCorpAccessToken ();
-
         if (! is_null ($this->corpAccessToken)) {
             return [
                 'corpId' => $this->corpAccessToken ['corpId'],
@@ -509,8 +514,9 @@ class FXK
      * @return Model
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function getCRMCustomObject ($apiName, $currentOpenUserId = '', $offset = 1, $limit = 100): Model
+    public function getCRMCustomObject ($apiName, $currentOpenUserId = '', $offset = 0, $limit = 100): Model
     {
+        $this->type='crm';
         $this->query ()
             ->criteria ('data', [
                 'dataObjectApiName' => $apiName,
@@ -525,7 +531,9 @@ class FXK
             ])
         ;
 
-        return $this->getModelByAdminUser ('crm/custom/data/query', $currentOpenUserId);
+        $info= $this->getModelByAdminUser ('crm/custom/data/query', $currentOpenUserId);
+
+        return $this->transform($info,$info->data);
 
     }
 
@@ -541,7 +549,7 @@ class FXK
         $mc = new MsgCrypt($this->token, $this->encodingAesKey);
         $msg = $mc->decryptMsg($sign, $timeStamp, $nonce, $content);
         if ($msg == -1) {
-           $data=['code'=>-1,'msg'=>'解密失败'];
+            $data=['code'=>-1,'msg'=>'解密失败'];
         } else {
             $data=['code'=>1,'msg'=>$msg];
         }
