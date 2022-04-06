@@ -98,7 +98,7 @@ class FXK
         $this->url = $config ['url'];
         $this->token = $config ['token'];
         $this->encodingAesKey = $config ['encodingAesKey'];
-//        $this->corpAccessToken=Cache::get(self::CACHE_KEY_CORPACCESSTOKEN_EXPIRESIN);
+        $this->corpAccessToken=Cache::get(self::CACHE_KEY_CORPACCESSTOKEN_EXPIRESIN);
 
         $this->client = new Client([
             'timeout' => $config ['timeout'],
@@ -143,7 +143,7 @@ class FXK
      * @return Model
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function exec(Request $request, $clear = true): Model
+    public function exec(Request $request, $clear = true)
     {
         $result = null;
         try {
@@ -151,8 +151,18 @@ class FXK
 
             if (!is_null($response) && !empty ($response) && $response->getStatusCode() === 200) {
                 $body = $response->getBody();
+                $contents=$body->getContents();
+//                dd($contents);
+//                dd($body->getSize());
+//                dd(json_decode($body->getContents(),true));
+                if(json_decode($contents,true)){
+                    $result = $this->handleResp(\GuzzleHttp\json_decode($contents, true));
+                }else{
+//                    dd($body->getSize());
+                    return $contents;
 
-                $result = $this->handleResp(\GuzzleHttp\json_decode($body->getContents(), true));
+                }
+
             }
         } catch (RequestException $e) {
             $result = new Model;
@@ -212,9 +222,12 @@ class FXK
      * @param array|null $req
      * @return Request
      */
-    private function request(string $method, array $req = []): Request
+    private function request(string $method, array $req = [],$url=''): Request
     {
-        return new Request('POST', $this->url . $method, [
+        if(empty($url)){
+            $url=$this->url;
+        }
+        return new Request('POST', $url . $method, [
             'Content-Type' => 'application/json;charset=utf-8',
         ], \GuzzleHttp\json_encode ($req));
     }
@@ -227,7 +240,7 @@ class FXK
      * @return Model
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    private function getModel (string $method, array $params = []): Model
+    private function getModel (string $method, array $params = [],$url='')
     {
 
         $params = array_merge ($params, $this->getCorpAccessToken ());
@@ -239,7 +252,7 @@ class FXK
         }
 
         return $this->exec (
-            $this->request ($method, $params)
+            $this->request ($method, $params,$url)
         );
     }
 
@@ -393,6 +406,13 @@ class FXK
 
     }
 
+    public function getMedia($mediaId,$name=''){
+        $this->query()
+            ->criteria('mediaId', $mediaId);
+        $model = $this->getModel ('media/download',[],'https://open.fxiaoke.com/');
+        return $model;
+    }
+
 
     /**
      * @param string $openUserId
@@ -532,8 +552,9 @@ class FXK
         ;
 
         $info= $this->getModelByAdminUser ('crm/custom/data/query', $currentOpenUserId);
-
-        return $this->transform($info,$info->data);
+        return $info;
+//        dd($info);
+//        return $this->transform($info,$info->data);
 
     }
 
