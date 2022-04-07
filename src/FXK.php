@@ -406,7 +406,7 @@ class FXK
 
     }
 
-    public function getMedia($mediaId,$name=''){
+    public function getMedia($mediaId){
         $this->query()
             ->criteria('mediaId', $mediaId);
         $model = $this->getModel ('media/download',[],'https://open.fxiaoke.com/');
