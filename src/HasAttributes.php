@@ -44,15 +44,11 @@ trait HasAttributes
      * @return \Goodcatch\FXK\Model
      *
      */
-    public function fill(array $attributes,$type='')
+    public function fill(array $attributes)
     {
         if (isset($attributes) && count ($attributes) > 0)
         {
-
-            if($type=='crm'){
-
-                $attributes=$attributes['data']['dataList'];
-            }
+            
 
                 foreach ($attributes as $key => $value) {
 

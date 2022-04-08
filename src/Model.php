@@ -26,10 +26,10 @@ class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializable
 {
     use HasAttributes;
 
-    public function __construct(array $attributes = [],$type='')
+    public function __construct(array $attributes = [])
     {
 
-        $this->fill($attributes,$type);
+        $this->fill($attributes);
     }
 
 

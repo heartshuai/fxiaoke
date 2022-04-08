@@ -83,8 +83,7 @@ class FXK
      * @var mixed
      */
     private $encodingAesKey;
-
-    private $type;
+    
     /**
      * Guanyi constructor.
      * @param array $config guanyi config
@@ -152,13 +151,9 @@ class FXK
             if (!is_null($response) && !empty ($response) && $response->getStatusCode() === 200) {
                 $body = $response->getBody();
                 $contents=$body->getContents();
-//                dd($contents);
-//                dd($body->getSize());
-//                dd(json_decode($body->getContents(),true));
                 if(json_decode($contents,true)){
                     $result = $this->handleResp(\GuzzleHttp\json_decode($contents, true));
                 }else{
-//                    dd($body->getSize());
                     return $contents;
 
                 }
@@ -195,7 +190,7 @@ class FXK
     private function handleResp(array $result): Model
     {
 
-        return new Model($result,$this->type);
+        return new Model($result);
     }
 
     private function transform (Model $model, $collection):Model
@@ -304,7 +299,6 @@ class FXK
         
         if (is_null ($this->corpAccessToken))
         {
-            $this->type='auth';
             $model = $this->exec (
                 $this->request ('corpAccessToken/get/V2', [
                     'appId' => $this->appId,
@@ -320,7 +314,6 @@ class FXK
             }
         } else if (! Cache::has (self::CACHE_KEY_CORPACCESSTOKEN_EXPIRESIN)) {
             $this->corpAccessToken = null;
-            $this->type='auth';
             $this->getCorpAccessToken ();
         }
     }
@@ -536,7 +529,6 @@ class FXK
      */
     public function getCRMCustomObject ($apiName, $currentOpenUserId = '', $offset = 0, $limit = 100): Model
     {
-        $this->type='crm';
         $this->query ()
             ->criteria ('data', [
                 'dataObjectApiName' => $apiName,
@@ -552,9 +544,7 @@ class FXK
         ;
 
         $info= $this->getModelByAdminUser ('crm/custom/data/query', $currentOpenUserId);
-        return $info;
-//        dd($info);
-//        return $this->transform($info,$info->data);
+        return $this->transform($info,$info->data['dataList']);
 
     }
 
